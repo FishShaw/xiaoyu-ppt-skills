@@ -4,6 +4,13 @@ ROOT=Path(__file__).resolve().parents[1]
 def module(name):
     spec=importlib.util.spec_from_file_location(name,ROOT/'scripts'/f'{name}.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
 class Repository(unittest.TestCase):
+    def test_release_rejects_newer_failed_or_pending_ci(self):
+        m=module('check_release_ci')
+        r={'id':1,'head_branch':'main','head_sha':'abc','event':'push','status':'completed','conclusion':'success'}
+        m.validate([r],'abc')
+        with self.assertRaises(ValueError):m.validate([r],'wrong')
+        with self.assertRaises(ValueError):m.validate([r,{**r,'id':2,'event':'schedule','conclusion':'failure'}],'abc')
+        with self.assertRaises(ValueError):m.validate([{**r,'id':2,'status':'in_progress'},r],'abc')
     def test_security_gate_unknown_expired_and_valid_exception(self):
         m=module('audit_dependencies');url='https://example.invalid/advisory/test'
         report={'vulnerabilities':{'image-size':{'severity':'high','via':[{'url':url}]}}}

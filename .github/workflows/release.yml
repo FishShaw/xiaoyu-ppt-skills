@@ -27,7 +27,14 @@ jobs:
           REPO: ${{ github.repository }}
           SHA: ${{ github.sha }}
         run: |
-          gh api "repos/$REPO/actions/workflows/ci.yml/runs?head_sha=$SHA&event=push&status=success&per_page=100" --jq '.workflow_runs[] | select(.head_branch == "main") | .head_sha' | grep -Fx "$SHA"
+          python scripts/check_release_ci.py
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Recheck current advisories and exception expiry before release
+        run: python scripts/audit_dependencies.py
       - run: python scripts/check_repo.py
       - run: python scripts/package_skill.py
       - name: Create an immutable versioned release draft

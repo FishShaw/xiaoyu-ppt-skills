@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "package": "image-size",
+    "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
+    "version": "1.2.1",
+    "scope": "synthetic-fixtures-only",
+    "approved": "2026-09-14",
+    "expires": "2026-10-14",
+    "reason": "Owner approved a temporary test-only exception. Non-PNG parsers disabled; only generated PNG input; bounded execution; dependency excluded from Skill package."
+  },
+  {
+    "package": "image-size",
+    "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
+    "version": "1.2.1",
+    "scope": "synthetic-fixtures-only",
+    "approved": "2026-09-14",
+    "expires": "2026-10-14",
+    "reason": "Owner approved a temporary test-only exception. Non-PNG parsers disabled; only generated PNG input; bounded execution; dependency excluded from Skill package."
+  }
+]

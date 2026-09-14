@@ -12,7 +12,7 @@
 
 Initial scan found [ICNS parser denial of service](https://github.com/advisories/GHSA-w3rx-r6r6-pgpr) and [JXL/HEIF parser denial of service](https://github.com/advisories/GHSA-5p2g-fcmc-qvqq) in `image-size`, inherited by the PptxGenJS test dependency. At setup there was no patched published version. Do not run `npm audit fix --force` blindly: its proposed downgrade is not an appropriate migration.
 
-The fixture generator disables every image parser except PNG, only consumes a program-generated PNG, and runs with a timeout. These mitigations reduce this test exposure but do not mean the dependency itself is patched. Without an owner-approved scoped exception, CI remains blocked. New advisories, changed versions and expired exceptions still fail.
+The fixture generator disables every image parser except PNG, only consumes a program-generated PNG, and runs with a timeout. These mitigations reduce this test exposure but do not mean the dependency itself is patched. The owner approved exactly these two advisories for test-only image-size 1.2.1 from 2026-09-14 through 2026-10-14. New advisories, changed versions and expired exceptions still fail. Release creation reruns the live audit, so an old successful CI cannot bypass expiration or newly disclosed findings.
 
 ## Administration
 
