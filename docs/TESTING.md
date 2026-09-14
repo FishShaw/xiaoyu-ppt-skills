@@ -9,9 +9,9 @@
 | 真实 PPT 集成 | 16:9、4:3、A4 竖版，每份 3 页；原生文字/表格/图表、合成 PNG 字节、备注、包关系、画布边界、指定链路 | 不是完整 ECMA OOXML XSD 校验 |
 | 渲染与修改 | LibreOffice 实际打开；中文文本可提取；所有页生成 PNG；限定改标题时其余页像素一致 | 中文可提取不等于逐字无截断；需人工看图 |
 | 人工视觉 | PR 清单要求查看全部受影响页、图标、箭头、图注与长表 | 无第二评审者时，清单完成度不是技术上不可绕过的门禁 |
-| 发布 | main 精确 SHA 的 push CI 成功后，生成带清单与 SHA-256 的版本草稿 | 不自动部署/替换本地已安装 Skill |
+| 发布 | main 精确 SHA 的最近 CI 成功，重新扫描依赖和例外有效期后，生成带清单与 SHA-256 的版本草稿 | 不自动部署/替换本地已安装 Skill |
 
-单元测试在 Ubuntu/Windows、Python 3.11/3.13 上运行；渲染使用 Ubuntu 24.04、Noto Sans CJK SC、LibreOffice。renderer 的 apt 软件版本由 runner 提供，每次记录实际版本；不跨不同渲染环境比较像素基线。
+当前共 31 个单元测试（25 个 Skill 回归 + 6 个仓库、安全、PR/发布门禁测试），在 Ubuntu/Windows、Python 3.11/3.13 上运行；渲染使用 Ubuntu 24.04、Noto Sans CJK SC、LibreOffice。renderer 的 apt 软件版本由 runner 提供，每次记录实际版本；不跨不同渲染环境比较像素基线。
 
 ## 本地执行
 
