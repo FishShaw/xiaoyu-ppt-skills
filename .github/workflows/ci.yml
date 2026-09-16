@@ -1,0 +1,119 @@
+name: CI
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '23 3 * * 1'
+permissions:
+  contents: read
+env:
+  PYTHONUTF8: '1'
+concurrency:
+  group: ci-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  unit:
+    name: Unit (${{ matrix.os }}, Python ${{ matrix.python }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-latest]
+        python: ['3.11', '3.13']
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python scripts/check_repo.py
+      - run: python -m unittest discover -s tests -v
+  integration:
+    name: Presentation integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Install renderer and CJK fonts
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libreoffice-impress poppler-utils fonts-noto-cjk
+          fc-match 'Noto Sans CJK SC'
+          soffice --version
+      - run: python tests/integration.py
+      - name: Upload previews and exact inputs
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: presentation-evidence-${{ github.sha }}
+          path: artifacts/integration/
+          retention-days: 14
+          if-no-files-found: error
+  security:
+    name: Dependency security
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: python scripts/audit_dependencies.py
+  package:
+    name: Package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+      - run: python scripts/check_repo.py
+      - run: python scripts/package_skill.py
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: skill-package-${{ github.sha }}
+          path: dist/
+          retention-days: 30
+  gate:
+    name: CI Gate
+    if: always()
+    needs: [unit, integration, package, security]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require every job to succeed
+        env:
+          UNIT: ${{ needs.unit.result }}
+          INTEGRATION: ${{ needs.integration.result }}
+          PACKAGE: ${{ needs.package.result }}
+          SECURITY: ${{ needs.security.result }}
+        run: |
+          test "$UNIT" = success
+          test "$INTEGRATION" = success
+          test "$PACKAGE" = success
+          test "$SECURITY" = success

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Xiaoyu PPT"
+  short_description: "制作可编辑、可追溯并经过几何与渲染验证的专业演示文稿"
+  brand_color: "#168AAD"
+  default_prompt: "Use $xiaoyu-ppt to create a polished, editable presentation from the supplied evidence."
+policy:
+  allow_implicit_invocation: true
